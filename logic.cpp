@@ -65,3 +65,43 @@ void GameLogic::calculateNeighboringMinesForAll() {
 		}
 	}
 }
+
+Cell GameLogic::getCell(unsigned x, unsigned y) {
+	x %= fieldWidth;
+	y %= fieldHeight;
+	return field[x + y * fieldWidth];
+}
+
+int GameLogic::open(unsigned x, unsigned y) {
+	if(getCell(x, y).isMine)
+		return 0;
+	else
+		revOpen(x, y);
+	return 1;
+}
+
+void GameLogic::revOpen(unsigned x, unsigned y) {
+	if(!isCellHere(x, y))
+		return;
+	
+	auto cell = getCell(x, y);
+	auto ax = x;
+	auto ay = y;
+	x %= fieldWidth;
+	y %= fieldHeight;
+	
+	if(cell.isOpen || cell.isMine || cell.isFlagged || cell.isSuspect)
+		return;
+	
+	if(cell.neighboringMines != 0 && !cell.isMine) {
+		field[x + y * fieldWidth].isOpen = true;
+		revOpen(ax, ay + 1);
+		revOpen(ax, ay - 1);
+		revOpen(ax + 1, ay);
+		revOpen(ax - 1, ay);
+		revOpen(ax + 1, ay + 1);
+		revOpen(ax + 1, ay - 1);
+		revOpen(ax - 1, ay + 1);
+		revOpen(ax - 1, ay - 1);
+	}
+}
