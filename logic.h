@@ -3,7 +3,7 @@
 
 constexpr unsigned fieldWidth    = 16;
 constexpr unsigned fieldHeight   = 16;
-constexpr unsigned numberOfMines = (fieldWidth*fieldHeight) / 32;
+constexpr unsigned numberOfMines = (fieldWidth*fieldHeight) / 16;
 
 struct Cell {
 	bool isOpen = false;

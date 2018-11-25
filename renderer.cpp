@@ -2,7 +2,7 @@
 #include <unistd.h>
 
 Renderer::Renderer() {
-	window = new sf::RenderWindow(sf::VideoMode(windowWidth, windowHeight), "Minesweeper");
+	window = new sf::RenderWindow(sf::VideoMode(windowWidth, windowHeight), "Minesweeper", sf::Style::Titlebar | sf::Style::Close);
 	window->setFramerateLimit(25);
 	for(int i = 0; i < 13; i++) {
 		textures[i].loadFromFile("contents/cells.png", sf::IntRect(i*16, 0, 16, 16));
@@ -16,6 +16,11 @@ void Renderer::mainLoop() {
 		while(window->pollEvent(event)) {
 			if(event.type == sf::Event::Closed) {
 				window->close();
+			}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
+				logic.isInMainMenu = true;
+				logic.isFirstTurn = true;
+				logic.isLoseOrWin = false;
 			}
 			if (event.type == sf::Event::MouseButtonPressed) {
 				mouseClick(event);
@@ -99,10 +104,12 @@ void Renderer::mouseClick(const sf::Event& event) {
 	const unsigned cellX = x / columnWidth;
 	const unsigned cellY = y / rowHeight;
 
+
+	
 	if(logic.isLoseOrWin) {
-		logic.isLoseOrWin = false;
 		logic.isInMainMenu = true;
 		logic.isFirstTurn = true;
+		logic.isLoseOrWin = false;
 		return;
 	}
 
@@ -122,18 +129,24 @@ void Renderer::mouseClick(const sf::Event& event) {
 		logic.newField(cellX, cellY);
 		logic.open(cellX, cellY);
 	
-	} else if (event.mouseButton.button == sf::Mouse::Right) {
-
-		logic.mark(cellX, cellY);
-
 	} else if (event.mouseButton.button == sf::Mouse::Left 
 								&& !logic.getCell(cellX, cellY).isOpen
 								&& !logic.getCell(cellX, cellY).isFlagged
 								&& !logic.getCell(cellX, cellY).isSuspect
 								&& !logic.isFirstTurn) {
+
 		int res = logic.open(cellX, cellY);
-		if(res == 0 || logic.remainingMines == 0) {
+		if(res == 0) {
 			logic.isLoseOrWin = true;
-		} 
-	}
+		}
+		if(logic.remainingMines == 0) {
+			logic.isLoseOrWin = true;
+		}
+
+	} else if (event.mouseButton.button == sf::Mouse::Right) {
+		logic.mark(cellX, cellY);
+		if(logic.remainingMines == 0) {
+			logic.isLoseOrWin = true;
+		}
+	} 
 }

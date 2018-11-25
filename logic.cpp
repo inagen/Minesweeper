@@ -1,7 +1,9 @@
 #include "logic.h"
 #include "time.h"
+#include <iostream>
 
 void GameLogic::newField(unsigned xpos, unsigned ypos) {
+	remainingMines = numberOfMines;
 	srand(time(NULL));
 	for(int i = 0; i < numberOfMines; i++) {
 		unsigned x = rand() % fieldWidth;
@@ -82,7 +84,6 @@ int GameLogic::open(unsigned x, unsigned y) {
 		return 0;
 
 	recOpen(x, y);
-	//field[ax + ay * fieldWidth].isOpen = true;
 	
 	return 1;
 }
