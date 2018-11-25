@@ -103,13 +103,13 @@ void Renderer::mouseClick(const sf::Event& event) {
 		logic.isLoseOrWin = false;
 		logic.isInMainMenu = true;
 		logic.isFirstTurn = true;
-		logic.clearField();
 		return;
 	}
 
 	if(logic.isInMainMenu && event.mouseButton.button == sf::Mouse::Left) {
 
 		if(y > 100 && y <= 300) {
+			logic.clearField();
 			logic.isInMainMenu = false;
 			return;
 		} else if (y > 300 && y < 512) {
