@@ -17,7 +17,8 @@ public:
 	Renderer();
 	void mainLoop();
 private:
-	void mouseClick();
+	void mouseClick(const sf::Event&);
+	void draw();
 	void drawCells();
 	void drawMainMenu();
 };

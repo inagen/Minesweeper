@@ -1,7 +1,9 @@
 #include "logic.h"
 #include "time.h"
+#include <iostream>
 
-cArray GameLogic::getNewField(unsigned xpos, unsigned ypos) {
+void GameLogic::newField(unsigned xpos, unsigned ypos) {
+	std::cout << "remainingMines: " << remainingMines << std::endl;
 	srand(time(NULL));
 	for(int i = 0; i < numberOfMines; i++) {
 		unsigned x = rand() % fieldWidth;
@@ -15,7 +17,6 @@ cArray GameLogic::getNewField(unsigned xpos, unsigned ypos) {
 		field[x + y * fieldWidth].isMine = true;
 	}
 	calculateNeighboringMinesForAll();
-	return field;
 }
 
 void GameLogic::clearField() {
@@ -30,6 +31,8 @@ bool GameLogic::isCellHere(unsigned x, unsigned y) {
 }
 
 bool GameLogic::isMine(unsigned x, unsigned y) {
+	if(!isCellHere(x, y))
+		return false;
 	x %= fieldWidth;
 	y %= fieldHeight;
 	return field[x + y * fieldWidth].isMine;
@@ -37,19 +40,17 @@ bool GameLogic::isMine(unsigned x, unsigned y) {
 
 unsigned GameLogic::calculateNeighboringMines(unsigned x, unsigned y) {
 	unsigned n = 0;
-	if(isCellHere(x, y) && isMine(x, y)) { return 0;}
+	if(isMine(x, y)) { return 0; }
 
-	if(isCellHere(x+1, y) && isMine(x+1, y)) { n++; }
-	if(isCellHere(x-1, y) && isMine(x-1, y)) { n++; }
+	if(isMine(x+1, y)) { n++; }
+	if(isMine(x-1, y)) { n++; }
+	if(isMine(x, y+1)) { n++; }
+	if(isMine(x, y-1)) { n++; }
 
-	if(isCellHere(x, y+1) && isMine(x, y+1)) { n++; }
-	if(isCellHere(x, y-1) && isMine(x, y-1)) { n++; }
-
-	if(isCellHere(x+1, y+1) && isMine(x+1, y+1)) { n++; }
-	if(isCellHere(x+1, y-1) && isMine(x+1, y-1)) { n++; }
-
-	if(isCellHere(x+1, y-1) && isMine(x+1, y-1)) { n++; }
-	if(isCellHere(x-1, y-1) && isMine(x-1, y-1)) { n++; }
+	if(isMine(x+1, y+1)) { n++; }
+	if(isMine(x+1, y-1)) { n++; }
+	if(isMine(x-1, y+1)) { n++; }
+	if(isMine(x-1, y-1)) { n++; }
 
 	return n;
 }
@@ -73,35 +74,82 @@ Cell GameLogic::getCell(unsigned x, unsigned y) {
 }
 
 int GameLogic::open(unsigned x, unsigned y) {
-	if(getCell(x, y).isMine)
+	auto cell = getCell(x, y);
+	auto ax = x;
+	auto ay = y;
+	ax %= fieldWidth;
+	ay %= fieldHeight;
+
+	if(cell.isMine)
 		return 0;
-	else
-		revOpen(x, y);
+
+	recOpen(x, y);
+	//field[ax + ay * fieldWidth].isOpen = true;
+	
 	return 1;
 }
 
-void GameLogic::revOpen(unsigned x, unsigned y) {
-	if(!isCellHere(x, y))
+void GameLogic::recOpen(unsigned x, unsigned y) {
+	if(!isCellHere(x, y)){
 		return;
+	}
+	
 	
 	auto cell = getCell(x, y);
 	auto ax = x;
 	auto ay = y;
+	ax %= fieldWidth;
+	ay %= fieldHeight;
+
+	auto nm = cell.neighboringMines;
+	if(nm !=0 && !cell.isOpen) {
+		field[ax + ay * fieldWidth].isOpen = true;
+		return;
+	}
+	if(cell.isOpen || cell.isFlagged || cell.isSuspect) {
+		return;
+	}
+ 	
+	if(!cell.isMine) {
+		field[ax + ay * fieldWidth].isOpen = true;
+		recOpen(x+1, y);
+		recOpen(x-1, y);
+		recOpen(x, y+1);
+		recOpen(x, y-1);
+		recOpen(x+1, y+1);
+		recOpen(x+1, y-1);
+		recOpen(x-1, y+1);
+		recOpen(x-1, y-1);
+	}
+}
+
+void GameLogic::mark(unsigned x, unsigned y) {
+	auto cell = getCell(x, y);
+	if(cell.isOpen)
+		return;
+
+	bool isMine = cell.isMine;
+	bool isFlagged = cell.isFlagged;
+	bool isSuspect = cell.isSuspect;
 	x %= fieldWidth;
 	y %= fieldHeight;
 	
-	if(cell.isOpen || cell.isMine || cell.isFlagged || cell.isSuspect)
-		return;
-	
-	if(cell.neighboringMines != 0 && !cell.isMine) {
-		field[x + y * fieldWidth].isOpen = true;
-		revOpen(ax, ay + 1);
-		revOpen(ax, ay - 1);
-		revOpen(ax + 1, ay);
-		revOpen(ax - 1, ay);
-		revOpen(ax + 1, ay + 1);
-		revOpen(ax + 1, ay - 1);
-		revOpen(ax - 1, ay + 1);
-		revOpen(ax - 1, ay - 1);
+	if(!isFlagged && !isSuspect) {
+		if(isMine) {
+			remainingMines--;
+		}
+		std::cout << "remainingMines: " << remainingMines << std::endl;
+		field[x + y * fieldWidth].isFlagged = true;
+	}
+	else if (isFlagged && !isSuspect) {
+		if(isMine) {
+			remainingMines++;
+		}
+		std::cout << "remainingMines: " << remainingMines << std::endl;
+		field[x + y * fieldWidth].isSuspect = true;
+		field[x + y * fieldWidth].isFlagged = false;
+	} else if (!isFlagged && isSuspect) {
+		field[x + y * fieldWidth].isSuspect = false;
+		field[x + y * fieldWidth].isFlagged = false;
 	}
 }
