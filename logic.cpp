@@ -1,9 +1,7 @@
 #include "logic.h"
 #include "time.h"
-#include <iostream>
 
 void GameLogic::newField(unsigned xpos, unsigned ypos) {
-	std::cout << "remainingMines: " << remainingMines << std::endl;
 	srand(time(NULL));
 	for(int i = 0; i < numberOfMines; i++) {
 		unsigned x = rand() % fieldWidth;
@@ -138,14 +136,12 @@ void GameLogic::mark(unsigned x, unsigned y) {
 		if(isMine) {
 			remainingMines--;
 		}
-		std::cout << "remainingMines: " << remainingMines << std::endl;
 		field[x + y * fieldWidth].isFlagged = true;
 	}
 	else if (isFlagged && !isSuspect) {
 		if(isMine) {
 			remainingMines++;
 		}
-		std::cout << "remainingMines: " << remainingMines << std::endl;
 		field[x + y * fieldWidth].isSuspect = true;
 		field[x + y * fieldWidth].isFlagged = false;
 	} else if (!isFlagged && isSuspect) {
